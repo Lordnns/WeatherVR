@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: dcb19e248b6c55c40bc0d1fd21dec7d4
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - sun: {instanceID: 0}
+  - daySky: {instanceID: 0}
+  - eveningSky: {instanceID: 0}
+  - nightSky: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
