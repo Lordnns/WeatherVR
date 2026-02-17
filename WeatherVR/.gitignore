@@ -3,6 +3,7 @@
 /Temp/
 *.sln
 *.csproj
+*.idea
 /.vs/
 /.vscode/
 /obj/
