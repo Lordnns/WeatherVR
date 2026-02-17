@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class WeatherSystem : MonoBehaviour
 {
@@ -19,7 +20,10 @@ public class WeatherSystem : MonoBehaviour
     [SerializeField] private GameObject snow;
     [SerializeField] private GameObject rain;
 
+    [SerializeField] private InputActionReference vrToggleButton;
+
     private Renderer groundRenderer;
+    private int weatherIndex = 0;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -44,22 +48,40 @@ public class WeatherSystem : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.S))
+        // Keyboard Shortcuts (Direct Access)
+        if (Input.GetKeyDown(KeyCode.S)) SetWeather(1);
+        if (Input.GetKeyDown(KeyCode.R)) SetWeather(2);
+        if (Input.GetKeyDown(KeyCode.N)) SetWeather(0);
+
+        // VR Toggle Logic (Cycling)
+        // Replace 'yourVRButtonAction' with your XRI Action reference
+
+        if (vrToggleButton != null && vrToggleButton.action.WasPressedThisFrame())
         {
-            EnableSnow(true);
+            CycleWeather();
         }
-        if (Input.GetKeyDown(KeyCode.N))
-        {
-            EnableSnow(false);
-            EnableRain(false);
-        }
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            EnableRain(true);
-        }
+    }
+
+    void CycleWeather()
+    {
+        // Moves 0 -> 1 -> 2 -> 0
+        weatherIndex = (weatherIndex + 1) % 3;
+        SetWeather(weatherIndex);
+    }
+
+    void SetWeather(int index)
+    {
+        weatherIndex = index;
+
+        // Reset all first
+        EnableSnow(false);
+        EnableRain(false);
+
+        // Enable based on index
+        if (index == 1) EnableSnow(true);
+        else if (index == 2) EnableRain(true);
     }
 
     void EnableSnow(bool enable)
