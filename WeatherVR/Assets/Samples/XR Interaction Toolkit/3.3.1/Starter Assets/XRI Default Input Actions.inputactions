@@ -1307,17 +1307,6 @@
                 },
                 {
                     "name": "",
-                    "id": "0a2e8524-b3cb-43e5-89e1-3fc581e995bd",
-                    "path": "",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Secondary",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "2951b36a-bb14-4ade-882b-c0a389f58e3e",
                     "path": "<XRController>{LeftHand}/{SecondaryButton}",
                     "interactions": "",
@@ -1330,7 +1319,7 @@
                 {
                     "name": "",
                     "id": "23a73bec-f552-473c-a6e3-e73e5017f29b",
-                    "path": "",
+                    "path": "<XRController>{LeftHand}/{PrimaryButton}",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -2120,6 +2109,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "Secondary",
+                    "type": "Button",
+                    "id": "f8c6837f-e0de-4801-bb48-76877e8ea13d",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -2428,6 +2426,17 @@
                     "processors": "ScaleVector2(x=0),StickDeadzone",
                     "groups": "",
                     "action": "Translate Manipulation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "bfdf5ea9-378b-4710-8d2a-ec8d59b9fe38",
+                    "path": "<XRController>{RightHand}/{SecondaryButton}",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Secondary",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -1,0 +1,10 @@
+# ninja log v5
+13	876	7930910231194547	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	e580ad180586f637
+18	883	7930910231234570	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	e7168a5918ac1b96
+9	899	7930910231444556	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	25aa49596bf3eedd
+31	905	7930910231519563	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	8a9789322db8a4e3
+5	936	7930910231844562	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	5de652667a422c23
+27	1053	7930910233019558	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	aaa9e215d92a7a82
+23	1076	7930910233239564	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	f1123bfd438973c0
+0	1133	7930910233819536	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	194ed9c4d61c6df2
+1134	1219	7930910234694563	B:/Unity Github/TP1VR/WeatherVR/WeatherVR/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/3l61266z/obj/arm64-v8a/libgame.so	50277b36fb80a223

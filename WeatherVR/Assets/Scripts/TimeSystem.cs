@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class TimeSystem : MonoBehaviour
 {
@@ -13,6 +14,8 @@ public class TimeSystem : MonoBehaviour
     [SerializeField] private int aboveAngle = 10;
     [SerializeField] private int belowAngle = 10;
     [SerializeField] private float rotationSpeed = 20f;
+    
+    [SerializeField] private InputActionReference vrToggleButton;
 
     private int sunTemp = 6570;
     private int sunSetTemp = 1500;
@@ -34,8 +37,7 @@ public class TimeSystem : MonoBehaviour
         DateTime now = DateTime.Now;
         int hour = now.Hour;
         int angle = hour * 15 - 90; // 360 / 24
-
-        if (Input.GetKeyDown(KeyCode.H))
+        /*if (Input.GetKeyDown(KeyCode.H))
         {
             SetRotation(angle);
             Debug.Log(hour + "h => " + angle + "°");
@@ -44,6 +46,11 @@ public class TimeSystem : MonoBehaviour
             Forward();
         if (Input.GetKey(KeyCode.LeftArrow))
             Backward();
+        */
+        if (vrToggleButton != null && vrToggleButton.action.IsPressed())
+        {
+            Forward();
+        }
 
         float sunRotation = sun.transform.eulerAngles.x;
         if (sunRotation < aboveAngle || sunRotation > 360 - belowAngle)

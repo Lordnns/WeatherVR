@@ -51,9 +51,9 @@ public class WeatherSystem : MonoBehaviour
     void Update()
     {
         // Keyboard Shortcuts (Direct Access)
-        if (Input.GetKeyDown(KeyCode.S)) SetWeather(1);
-        if (Input.GetKeyDown(KeyCode.R)) SetWeather(2);
-        if (Input.GetKeyDown(KeyCode.N)) SetWeather(0);
+        //if (Input.GetKeyDown(KeyCode.S)) SetWeather(1);
+        //if (Input.GetKeyDown(KeyCode.R)) SetWeather(2);
+        //if (Input.GetKeyDown(KeyCode.N)) SetWeather(0);
 
         // VR Toggle Logic (Cycling)
         // Replace 'yourVRButtonAction' with your XRI Action reference

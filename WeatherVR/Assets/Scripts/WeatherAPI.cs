@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
 using System;
+using System.Globalization;
 
 public class WeatherAPI : MonoBehaviour
 {
@@ -130,7 +131,10 @@ public class WeatherAPI : MonoBehaviour
 
     private IEnumerator GetWeatherCurrent()
     {
-        string url = $"{proxyBaseUrl}/weather/current?lat={_latitude}&lon={_longitude}&units=metric";
+        string lat = FormatCoordinate(_latitude);
+        string lon = FormatCoordinate(_longitude);
+        
+        string url = $"{proxyBaseUrl}/weather/current?lat={lat}&lon={lon}&units=metric";
         using (UnityWebRequest www = UnityWebRequest.Get(url))
         {
             www.SetRequestHeader(authHeaderName, secretToken);
@@ -157,7 +161,10 @@ public class WeatherAPI : MonoBehaviour
     // 2. SLOW CALL: Background task for the 5-day / Hourly UI
     private IEnumerator GetWeatherForecast()
     {
-        string url = $"{proxyBaseUrl}/weather/forecast?lat={_latitude}&lon={_longitude}&units=metric";
+        string lat = FormatCoordinate(_latitude);
+        string lon = FormatCoordinate(_longitude);
+        
+        string url = $"{proxyBaseUrl}/weather/forecast?lat={lat}&lon={lon}&units=metric";
         using (UnityWebRequest www = UnityWebRequest.Get(url))
         {
             www.SetRequestHeader(authHeaderName, secretToken);
@@ -172,6 +179,11 @@ public class WeatherAPI : MonoBehaviour
                 OnForecastUpdated?.Invoke();
             }
         }
+    }
+    
+    private string FormatCoordinate(float value)
+    {
+        return value.ToString(CultureInfo.InvariantCulture);
     }
 
     #endregion
