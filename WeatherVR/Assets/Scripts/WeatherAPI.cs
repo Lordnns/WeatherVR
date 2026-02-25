@@ -25,15 +25,15 @@ public class WeatherAPI : MonoBehaviour
     public float WindSpeed => _windSpeed;
     public float ApparentTemp => _apparentTemp;
 
-    [SerializeField, ReadOnly] private float _latitude;
-    [SerializeField, ReadOnly] private float _longitude;
-    [SerializeField, ReadOnly] private string _cityName;
-    [SerializeField, ReadOnly] private int _weatherCode;
-    [SerializeField, ReadOnly] private bool _isDay;
-    [SerializeField, ReadOnly] private float _temperature;
-    [SerializeField, ReadOnly] private float _humidity;
-    [SerializeField, ReadOnly] private float _windSpeed;
-    [SerializeField, ReadOnly] private float _apparentTemp;
+    [SerializeField] private float _latitude;
+    [SerializeField] private float _longitude;
+    [SerializeField] private string _cityName;
+    [SerializeField] private int _weatherCode;
+    [SerializeField] private bool _isDay;
+    [SerializeField] private float _temperature;
+    [SerializeField] private float _humidity;
+    [SerializeField] private float _windSpeed;
+    [SerializeField] private float _apparentTemp;
     
     private ForecastData _hourlyForecast;
 
