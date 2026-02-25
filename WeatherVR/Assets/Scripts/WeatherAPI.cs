@@ -52,7 +52,7 @@ public class WeatherAPI : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    private IEnumerator Start()
+    public IEnumerator Start()
     {
         yield return StartCoroutine(GetLocationByIP());
         yield return StartCoroutine(GetWeatherCurrent());

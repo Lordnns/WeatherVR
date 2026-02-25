@@ -1,0 +1,5 @@
+C:/Users/samue/OneDrive/Documents/WeatherVR/WeatherVR/.utmp/RelWithDebInfo/2u311p4c/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/samue/OneDrive/Documents/WeatherVR/WeatherVR/.utmp/RelWithDebInfo/2u311p4c/arm64-v8a/CMakeFiles/rebuild_cache.dir
+C:/Users/samue/OneDrive/Documents/WeatherVR/WeatherVR/.utmp/RelWithDebInfo/2u311p4c/arm64-v8a/GameActivity/CMakeFiles/game.dir
+C:/Users/samue/OneDrive/Documents/WeatherVR/WeatherVR/.utmp/RelWithDebInfo/2u311p4c/arm64-v8a/GameActivity/CMakeFiles/edit_cache.dir
+C:/Users/samue/OneDrive/Documents/WeatherVR/WeatherVR/.utmp/RelWithDebInfo/2u311p4c/arm64-v8a/GameActivity/CMakeFiles/rebuild_cache.dir
