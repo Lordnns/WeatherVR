@@ -270,12 +270,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b35fcc6c66990744cb4bcb94387c6e71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VRCenteredThrobber
-  vrCamera: {fileID: 0}
-  distanceFromCamera: 2
   throbberIcon: {fileID: 3960551087677885065}
   rotationSpeed: -180
-  smoothFollow: 1
-  followSpeed: 5
 --- !u!1 &1393211295085813020
 GameObject:
   m_ObjectHideFlags: 0
@@ -1233,6 +1229,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4281805594767611077, guid: ebe65a5d98b2c7747aba087e855dab4b, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 2ec58958f0046184ea6f174606272195, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
