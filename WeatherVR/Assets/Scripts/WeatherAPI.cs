@@ -24,6 +24,8 @@ public class WeatherAPI : MonoBehaviour
     public float Humidity => _humidity;
     public float WindSpeed => _windSpeed;
     public float ApparentTemp => _apparentTemp;
+    public ForecastData HourlyForecast => _hourlyForecast;
+    public DailyData DailyForecast => _dailyForecast;
 
     [SerializeField] private float _latitude;
     [SerializeField] private float _longitude;
@@ -36,6 +38,7 @@ public class WeatherAPI : MonoBehaviour
     [SerializeField] private float _apparentTemp;
     
     private ForecastData _hourlyForecast;
+    private DailyData _dailyForecast;
 
     // Delegate for global broadcast
     public static event Action OnWeatherUpdated;
@@ -174,6 +177,7 @@ public class WeatherAPI : MonoBehaviour
             {
                 var data = JsonUtility.FromJson<WeatherResponseForecast>(www.downloadHandler.text);
                 _hourlyForecast = data.hourly;
+                _dailyForecast = data.daily;
                 
                 Debug.Log("Forecast Loaded.");
                 OnForecastUpdated?.Invoke();
@@ -200,7 +204,20 @@ public class WeatherResponseCurrent
 [Serializable]
 public class WeatherResponseForecast 
 {
+    public CurrentData current;
     public ForecastData hourly;
+    public DailyData daily;
+}
+
+[Serializable]
+public class DailyData 
+{
+    public string[] time;
+    public float[] temperature_2m_max;
+    public float[] temperature_2m_min;
+    public string[] sunrise;
+    public string[] sunset;
+    public int[] weather_code;
 }
 
 [Serializable]
