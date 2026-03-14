@@ -124,7 +124,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 12d3bf61b014a48a2b7564c61da9d7ad, type: 3}
-  m_Name: AndroidXRPerformanceMetrics Standalone
+  m_Name: AndroidXRPerformanceMetrics Android
   m_EditorClassIdentifier: Unity.XR.AndroidOpenXR::UnityEngine.XR.OpenXR.Features.Android.AndroidXRPerformanceMetrics
   m_enabled: 0
   nameUi: Android XR Performance Metrics
@@ -2334,8 +2334,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.XR.OpenXR::UnityEngine.XR.OpenXR.OpenXRSettings
   features:
   - {fileID: -2684795852256468377}
-  - {fileID: 2341330612139613526}
-  - {fileID: -263817709040210152}
+  - {fileID: -8388737965922028281}
+  - {fileID: -7767895159816477752}
   - {fileID: -1882194848542440026}
   - {fileID: 7650882521403899305}
   - {fileID: -528987344558103110}
@@ -2346,7 +2346,7 @@ MonoBehaviour:
   - {fileID: 8897748669232576930}
   - {fileID: 3525703297012054114}
   - {fileID: -8571164021085351215}
-  - {fileID: -4750619276918034435}
+  - {fileID: -8653681678271041514}
   - {fileID: 7538480250451270805}
   - {fileID: -8794797409538389482}
   - {fileID: 4259180807866388474}

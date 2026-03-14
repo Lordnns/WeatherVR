@@ -24,6 +24,7 @@ public class WeatherAPI : MonoBehaviour
     public float Humidity => _humidity;
     public float WindSpeed => _windSpeed;
     public float ApparentTemp => _apparentTemp;
+    public float CurrentRainChance => _currentRainChance;
     public ForecastData HourlyForecast => _hourlyForecast;
     public DailyData DailyForecast => _dailyForecast;
 
@@ -36,6 +37,7 @@ public class WeatherAPI : MonoBehaviour
     [SerializeField] private float _humidity;
     [SerializeField] private float _windSpeed;
     [SerializeField] private float _apparentTemp;
+    [SerializeField] private float _currentRainChance;
     
     private ForecastData _hourlyForecast;
     private DailyData _dailyForecast;
@@ -154,6 +156,12 @@ public class WeatherAPI : MonoBehaviour
                 _humidity = data.current.relative_humidity_2m;
                 _windSpeed = data.current.wind_speed_10m;
                 _apparentTemp = data.current.apparent_temperature;
+                
+                if (data.daily != null)
+                    _dailyForecast = data.daily;
+                
+                if (data.hourly != null && data.hourly.precipitation_probability != null && data.hourly.precipitation_probability.Length > 0)
+                    _currentRainChance = data.hourly.precipitation_probability[0];
 
                 Debug.Log("Current Weather Loaded. Triggering Map Update.");
                 OnWeatherUpdated?.Invoke();
@@ -199,12 +207,13 @@ public class WeatherAPI : MonoBehaviour
 public class WeatherResponseCurrent 
 {
     public CurrentData current;
+    public DailyData    daily;
+    public ForecastData hourly;
 }
 
 [Serializable]
 public class WeatherResponseForecast 
 {
-    public CurrentData current;
     public ForecastData hourly;
     public DailyData daily;
 }
@@ -236,8 +245,11 @@ public class ForecastData
 {
     public string[] time;
     public float[] temperature_2m;
-    public int[] weather_code;
-    public float[] precipitation_probability;
+    public float[]  apparent_temperature;
+    public float[]  relative_humidity_2m;
+    public float[]  precipitation_probability;
+    public float[]  wind_speed_10m;
+    public int[]    weather_code;
 }
 
 [Serializable]
