@@ -866,7 +866,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!114 &766894505813400424
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2296,6 +2296,7 @@ GameObject:
   - component: {fileID: 5347457500960908717}
   - component: {fileID: 120892028025640549}
   - component: {fileID: 6275541325715393620}
+  - component: {fileID: 3025963215397592354}
   m_Layer: 5
   m_Name: CitySearchField
   m_TagString: Untagged
@@ -2462,6 +2463,18 @@ MonoBehaviour:
   isAlert: 0
   m_InputValidator: {fileID: 0}
   m_ShouldActivateOnSelect: 1
+--- !u!114 &3025963215397592354
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7031686361796056782}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4b44fa7f5454be8ac099f688af89b89, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestKeyboardTrigger
 --- !u!1 &8064509297319952566
 GameObject:
   m_ObjectHideFlags: 0
@@ -2675,6 +2688,7 @@ GameObject:
   - component: {fileID: 412746982588452354}
   - component: {fileID: 1704097448774439313}
   - component: {fileID: 1102570937083673881}
+  - component: {fileID: 8594415119533300860}
   m_Layer: 5
   m_Name: SlotSelect
   m_TagString: Untagged
@@ -2841,6 +2855,18 @@ MonoBehaviour:
   isAlert: 0
   m_InputValidator: {fileID: 0}
   m_ShouldActivateOnSelect: 1
+--- !u!114 &8594415119533300860
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9116731953247515961}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4b44fa7f5454be8ac099f688af89b89, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestKeyboardTrigger
 --- !u!1001 &1073726045005702550
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3529,7 +3555,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8747907324888668265, guid: 0cbc0856f0fb8d84a81be5dea463c369, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.0005841669
+      value: -0.010366344
       objectReference: {fileID: 0}
     - target: {fileID: 8747907325091541477, guid: 0cbc0856f0fb8d84a81be5dea463c369, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -3537,7 +3563,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8747907325324488006, guid: 0cbc0856f0fb8d84a81be5dea463c369, type: 3}
       propertyPath: m_Size
-      value: 0.9999958
+      value: 0.99991953
       objectReference: {fileID: 0}
     - target: {fileID: 8747907325324488006, guid: 0cbc0856f0fb8d84a81be5dea463c369, type: 3}
       propertyPath: m_Value
