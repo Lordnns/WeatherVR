@@ -10322,6 +10322,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: LoadingBox
       objectReference: {fileID: 0}
+    - target: {fileID: 1443633862137845768, guid: 4db1950d82f585d478019af0162cbe64, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3050094803092107614, guid: 4db1950d82f585d478019af0162cbe64, type: 3}
       propertyPath: m_LocalScale.z
       value: 1.3906
@@ -18857,6 +18861,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2140724479664103814, guid: bf0f8370e648b4e43a245efe82b5becd, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -34
+      objectReference: {fileID: 0}
+    - target: {fileID: 2140724479664103814, guid: bf0f8370e648b4e43a245efe82b5becd, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -19018,7 +19026,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3352183807197586856, guid: bf0f8370e648b4e43a245efe82b5becd, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 3.27
+      value: 3.104
       objectReference: {fileID: 0}
     - target: {fileID: 3352183807197586856, guid: bf0f8370e648b4e43a245efe82b5becd, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -25563,6 +25571,7 @@ SceneRoots:
   - {fileID: 257745807}
   - {fileID: 1239825375}
   - {fileID: 1908541675}
+  - {fileID: 978941576}
   - {fileID: 1487144517}
   - {fileID: 2067651021}
   - {fileID: 1617931606}
