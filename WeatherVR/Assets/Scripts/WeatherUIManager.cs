@@ -235,7 +235,7 @@ public class WeatherUIManager : MonoBehaviour
             {
                 if (daily.time[d2] == lookupKey)
                 {
-                    highLow = $"H: {Mathf.RoundToInt(daily.temperature_2m_max[d2])}°  L: {Mathf.RoundToInt(daily.temperature_2m_min[d2])}°";
+                    highLow = $"H: {Mathf.RoundToInt(daily.temperature_2m_max[d2])}°\n L: {Mathf.RoundToInt(daily.temperature_2m_min[d2])}°";
                     sunrise = DateTime.Parse(daily.sunrise[d2]).ToString("h:mm tt");
                     sunset  = DateTime.Parse(daily.sunset[d2]).ToString("h:mm tt");
                     break;
@@ -257,16 +257,16 @@ public class WeatherUIManager : MonoBehaviour
             currentCityText.text       = WeatherAPI.instance.CityName;
             currentTimeText.text       = displayTime;
             currentTempText.text       = $"{Mathf.RoundToInt(d.Temperature)}°C";
-            currentRainChanceText.text = $"{Mathf.RoundToInt(d.RainChance)}%";
+            currentRainChanceText.text = "Precipitation: " + $"{Mathf.RoundToInt(d.RainChance)}%";
             currentWeatherIcon.texture = GetTextureForWeatherCode(d.WeatherCode, d.IsDay);
  
             // Use the slot's own hourly values for the selected hour
             SetOptionalText(currentFeelsLikeText,  $"{Mathf.RoundToInt(d.ApparentTemp)}°C");
-            SetOptionalText(currentHumidityText,   $"{Mathf.RoundToInt(d.Humidity)}%");
-            SetOptionalText(currentWindSpeedText,  $"{Mathf.RoundToInt(d.WindSpeed)} km/h");
+            SetOptionalText(currentHumidityText,   "Humidity:      " + $"{Mathf.RoundToInt(d.Humidity)}%");
+            SetOptionalText(currentWindSpeedText,  "Wind Speed:    " + $"{Mathf.RoundToInt(d.WindSpeed)} km/h");
             SetOptionalText(currentHighLowText,    highLow);
-            SetOptionalText(currentSunriseText,    sunrise);
-            SetOptionalText(currentSunsetText,     sunset);
+            SetOptionalText(currentSunriseText,    "Sunrise: " + sunrise);
+            SetOptionalText(currentSunsetText,     "Sunset: "  + sunset);
             
             OnCurrentDisplayUpdated?.Invoke(new CurrentWeatherPayload
             {
@@ -288,15 +288,15 @@ public class WeatherUIManager : MonoBehaviour
             currentCityText.text       = WeatherAPI.instance.CityName;
             currentTimeText.text       = DateTime.Now.ToString("h:mm tt");
             currentTempText.text       = $"{Mathf.RoundToInt(WeatherAPI.instance.Temperature)}°C";
-            currentRainChanceText.text = $"{Mathf.RoundToInt(WeatherAPI.instance.CurrentRainChance)}%";
+            currentRainChanceText.text = "Precipitation: " + $"{Mathf.RoundToInt(WeatherAPI.instance.CurrentRainChance)}%";
             currentWeatherIcon.texture = GetTextureForWeatherCode(WeatherAPI.instance.WeatherCode, WeatherAPI.instance.IsDay);
  
             SetOptionalText(currentFeelsLikeText,  $"{Mathf.RoundToInt(WeatherAPI.instance.ApparentTemp)}°C");
-            SetOptionalText(currentHumidityText,   $"{Mathf.RoundToInt(WeatherAPI.instance.Humidity)}%");
-            SetOptionalText(currentWindSpeedText,  $"{Mathf.RoundToInt(WeatherAPI.instance.WindSpeed)} km/h");
+            SetOptionalText(currentHumidityText,   "Humidity:      " + $"{Mathf.RoundToInt(WeatherAPI.instance.Humidity)}%");
+            SetOptionalText(currentWindSpeedText,  "Wind Speed:    " + $"{Mathf.RoundToInt(WeatherAPI.instance.WindSpeed)} km/h");
             SetOptionalText(currentHighLowText,    highLow);
-            SetOptionalText(currentSunriseText,    sunrise);
-            SetOptionalText(currentSunsetText,     sunset);
+            SetOptionalText(currentSunriseText,    "Sunrise: " + sunrise);
+            SetOptionalText(currentSunsetText,     "Sunset: "  + sunset);
             
             OnCurrentDisplayUpdated?.Invoke(new CurrentWeatherPayload
             {
