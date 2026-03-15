@@ -14,7 +14,6 @@ Material:
   m_ValidKeywords: []
   m_InvalidKeywords:
   - _ENABLECLOUDS_ON
-  - _ENABLEMOON_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -84,7 +83,7 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _EnableClouds: 1
-    - _EnableMoon: 1
+    - _EnableMoon: 0
     - _EnableStars: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
@@ -113,7 +112,7 @@ Material:
     - _SunFlareLength: 0
     - _SunFlareRayCount: 8
     - _SunHaze: 0.5
-    - _SunSize: 0.05
+    - _SunSize: 0
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:

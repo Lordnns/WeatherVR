@@ -7,94 +7,118 @@ public class TimeSystem : MonoBehaviour
     [SerializeField] private Light sun;
     [SerializeField] private Light moon;
 
-    [SerializeField] private Material daySky;
-    [SerializeField] private Material eveningSky;
-    [SerializeField] private Material nightSky;
+    [SerializeField] private Material skyboxBase;
+
+    [SerializeField] private Cubemap daySky;
+    [SerializeField] private Cubemap eveningSky;
+    [SerializeField] private Cubemap nightSky;
 
     [SerializeField] private int aboveAngle = 10;
     [SerializeField] private int belowAngle = 10;
-    [SerializeField] private float rotationSpeed = 20f;
     
     [SerializeField] private InputActionReference vrToggleButton;
 
-    private int sunTemp = 6570;
-    private int sunSetTemp = 1500;
+    private readonly int sunTemp = 6570;
+    private readonly int sunSetTemp = 1500;
+
+    // Day times, excluded
+    public int endNight = 5;    // 0 -> 4
+    public int startDay = 8;    // 5 -> 7
+    public int endDay = 17;     // 8 -> 16
+    public int startNight = 20; // 17 -> 19
+    // night                    // 20 -> 23
+
+    private int currentHour = 12;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         // DEBUG
-        Debug.Log("Press H to set to current time");
-        Debug.Log("Press RIGHT_AROW to set go forward");
-        Debug.Log("Press LEFT_AROW to set go backward");
-        Debug.Log("Press R to set rain");
-        Debug.Log("Press S to set snow");
-        Debug.Log("Press N to set normal");
+        Debug.Log("Press SPACE to change the weather");
+        Debug.Log("Press ENTER to go go forward in time");
+
+        skyboxBase.SetTexture("_Tex", daySky);
+        sun.enabled = true;
+        moon.enabled = false;
+        sun.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+        // Moon light points downward
+        moon.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+
+        currentHour -= 1;
+        Forward();
+        SetSky();
     }
 
     // Update is called once per frame
     void Update()
     {
-        DateTime now = DateTime.Now;
-        int hour = now.Hour;
-        int angle = hour * 15 - 90; // 360 / 24
-        /*if (Input.GetKeyDown(KeyCode.H))
-        {
-            SetRotation(angle);
-            Debug.Log(hour + "h => " + angle + "°");
-        }
-        if (Input.GetKey(KeyCode.RightArrow))
-            Forward();
-        if (Input.GetKey(KeyCode.LeftArrow))
-            Backward();
-        */
-        if (vrToggleButton != null && vrToggleButton.action.IsPressed())
+        if (vrToggleButton != null && vrToggleButton.action.WasPressedThisFrame())
         {
             Forward();
+            SetSky();
+            sun.colorTemperature = GetTemp();
         }
 
-        float sunRotation = sun.transform.eulerAngles.x;
-        if (sunRotation < aboveAngle || sunRotation > 360 - belowAngle)
-            SetSky(eveningSky, sun);
-        else if (sunRotation < 180)
-            SetSky(daySky, sun);
-        else
-            SetSky(nightSky, moon);
-
-        int tempAngle = (int) (sunRotation + belowAngle) % 360;
-        sun.colorTemperature = Mathf.Min(GetTemp(
-            tempAngle,
-            aboveAngle,
-            belowAngle,
-            sunTemp,
-            sunSetTemp
-            ), sunTemp);
-
-        moon.transform.rotation = sun.transform.rotation * Quaternion.Euler(180f, 0f, 0f);
+        //int tempAngle = (int) (sunRotation + belowAngle) % 360;
+        //sun.colorTemperature = Mathf.Min(GetTemp(
+        //    tempAngle,
+        //    aboveAngle,
+        //    belowAngle,
+        //    sunTemp,
+        //    sunSetTemp
+        //    ), sunTemp);
     }
 
     void Forward()
     {
-        sun.transform.Rotate(rotationSpeed * Time.deltaTime * Vector3.right);
+        //sun.transform.Rotate(rotationSpeed * Time.deltaTime * Vector3.right);
+        currentHour += 1;
+        currentHour %= 24;
+        float angle = HourToAngle(currentHour);
+        SetSunAngle(angle);
     }
 
-    void Backward()
+    float HourToAngle(int hour)
     {
-        sun.transform.Rotate(-rotationSpeed * Time.deltaTime * Vector3.right);
+        return (hour * 15 - 90) % 360;
     }
 
-    void SetRotation(float rotation)
+    void SetSunAngle(float angle)
     {
-        sun.transform.rotation = Quaternion.Euler(rotation, 0f, 0f);
+        sun.transform.rotation = Quaternion.Euler(angle, 0, 0);
     }
 
-    void SetSky(Material sky, Light light)
+    void SetSky()
     {
-        RenderSettings.skybox = sky;
-        DynamicGI.UpdateEnvironment();
-
-        sun.enabled = false;
-        moon.enabled = false;
-        light.enabled = true;
+        if (currentHour < endNight)
+        {
+            skyboxBase.SetTexture("_Tex", nightSky);
+            sun.enabled = false;
+            moon.enabled = true;
+        }
+        else if (currentHour < startDay)
+        {
+            skyboxBase.SetTexture("_Tex", eveningSky);
+            sun.enabled = true;
+            moon.enabled = false;
+        }
+        else if (currentHour < endDay)
+        {
+            skyboxBase.SetTexture("_Tex", daySky);
+            sun.enabled = true;
+            moon.enabled = false;
+        }
+        else if (currentHour < startNight)
+        {
+            skyboxBase.SetTexture("_Tex", eveningSky);
+            sun.enabled = true;
+            moon.enabled = false;
+        }
+        else
+        {
+            skyboxBase.SetTexture("_Tex", nightSky);
+            sun.enabled = false;
+            moon.enabled = true;
+        }
     }
 
     /* Parameters : 
@@ -108,8 +132,10 @@ public class TimeSystem : MonoBehaviour
      * Return : 
      * temperature: int
      */
-    int GetTemp(int x, int a, int b, int A, int B)
+    float GetTemp()
     {
-        return (A - B) / (a + b) * x + B;
+        float angle = HourToAngle(currentHour);
+        if (angle > 90) angle = 180 - angle;
+        return (sunTemp - sunSetTemp) / (aboveAngle + belowAngle) * angle + sunSetTemp;
     }
 }
