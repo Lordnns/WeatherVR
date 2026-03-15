@@ -6,168 +6,157 @@ public class WeatherSystem : MonoBehaviour
     [SerializeField] private Light sun;
     [SerializeField] private Light moon;
 
-    [SerializeField] private float baseSunIntensity = 1;
-    [SerializeField] private float baseMoonIntensity = 0.2f;
-    [SerializeField] private float rainySunIntensity = 0.5f;
-    [SerializeField] private float rainyMoonIntensity = 0.1f;
-    [SerializeField] private float snowySunIntensity = 0.4f;
-    [SerializeField] private float snowyMoonIntensity = 0.1f;
-
     [SerializeField] private GameObject ground;
     [SerializeField] private Material groundGrass;
     [SerializeField] private Material groundSnow;
 
-    [SerializeField] private GameObject snow;
-    [SerializeField] private GameObject rain;
+    [SerializeField] private ParticleSystem snowParticles;
+    [SerializeField] private ParticleSystem rainParticles;
 
-    [SerializeField] private InputActionReference vrToggleButton;
+    [SerializeField] private AudioSource rainAudio;
+    [SerializeField] private AudioSource thunderAudio;
 
-    private Renderer groundRenderer;
-    private int weatherIndex = 0;
+    [SerializeField] private float maxRainRate = 1000f;
+    [SerializeField] private float maxSnownRate = 2000f;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private ParticleSystem.EmissionModule _snowEmission;
+    private ParticleSystem.VelocityOverLifetimeModule _snowVelocityOverLifetime;
+    private ParticleSystem.EmissionModule _rainEmission;
+    private ParticleSystem.VelocityOverLifetimeModule _rainVelocityOverLifetime;
+    public enum WeatherIntensity {Clear, Cloudy, Rainy, Snowy, Stormy}
+
+    private void OnEnable() => WeatherUIManager.OnCurrentDisplayUpdated += OnWeatherChanged;
+    private void OnDisable() => WeatherUIManager.OnCurrentDisplayUpdated -= OnWeatherChanged;
+
+    private void Awake()
     {
-        if (ground != null)
-        {
-            groundRenderer = ground.GetComponent<Renderer>();
-            if (groundRenderer != null && groundGrass != null)
-            {
-                groundRenderer.material = groundGrass;
-            }
-        }
-
-        if (sun != null)
-        {
-            sun.intensity = baseSunIntensity;
-        }
-
-        if (moon != null)
-        {
-            moon.intensity = baseMoonIntensity;
-        }
+        _snowEmission = snowParticles.emission;
+        _snowVelocityOverLifetime = snowParticles.velocityOverLifetime;
+        _rainEmission = rainParticles.emission;
+        _rainVelocityOverLifetime = rainParticles.velocityOverLifetime;
     }
 
-    void Update()
+    // Use p.WeatherCode, p.Temperature, p.Humidity, p.WindSpeed and p.RainChance for weather management
+    // WeatherCode determines the base weather with GetIntensity()
+    // Temperature sets snows if under 0°C
+    // Humidity manages fog
+    // WindSpeed manages particles and outside objetcs moving
+    // RainChance adds clouds
+    private void OnWeatherChanged(WeatherUIManager.CurrentWeatherPayload p)
     {
-        // Keyboard Shortcuts (Direct Access)
-        //if (Input.GetKeyDown(KeyCode.S)) SetWeather(1);
-        //if (Input.GetKeyDown(KeyCode.R)) SetWeather(2);
-        //if (Input.GetKeyDown(KeyCode.N)) SetWeather(0);
+        // reset everything
+        snowParticles.gameObject.SetActive(false);
+        _snowEmission.rateOverTime = 0f;
+        _snowVelocityOverLifetime.x = p.WindSpeed;
+        FindAnyObjectByType<SnowSystem>().SetSnow(0f);
+        ground.GetComponent<Renderer>().material = groundGrass;
 
-        // VR Toggle Logic (Cycling)
-        // Replace 'yourVRButtonAction' with your XRI Action reference
+        rainParticles.gameObject.SetActive(false);
+        _rainEmission.rateOverTime = 0f;
+        _rainVelocityOverLifetime.x = p.WindSpeed;
 
-        if (vrToggleButton != null && vrToggleButton.action.WasPressedThisFrame())
+        // audio
+        rainAudio.Stop();
+
+        // add weather
+        WeatherIntensity intensity = GetIntensity(p.WeatherCode);
+        switch (intensity)
         {
-            CycleWeather();
+            // clear, default weather
+            case WeatherIntensity.Clear:
+                {
+                    break;
+                }
+            // some clouds in the sky
+            case WeatherIntensity.Cloudy:
+                {
+                    break;
+                }
+            // raining
+            case WeatherIntensity.Rainy:
+                {
+                    rainParticles.gameObject.SetActive(true);
+                    _rainEmission.rateOverTime = maxRainRate * GetRainIntensity(p.WeatherCode);
+
+                    // audio
+                    if (!rainAudio.isPlaying) rainAudio.Play();
+                    rainAudio.volume = Mathf.Lerp(rainAudio.volume, GetRainIntensity(p.WeatherCode), Time.deltaTime);
+                    break;
+                }
+            // snowing, the floor is snowy too
+            case WeatherIntensity.Snowy:
+                {
+                    snowParticles.gameObject.SetActive(true);
+                    _snowEmission.rateOverTime = maxSnownRate * GetSnowIntensity(p.WeatherCode);
+                    FindAnyObjectByType<SnowSystem>().SetSnow(1f);
+                    ground.GetComponent<Renderer>().material = groundSnow;
+                    break;
+                }
+            // rain and thunder
+            case WeatherIntensity.Stormy:
+                {
+                    rainParticles.gameObject.SetActive(true);
+                    _rainEmission.rateOverTime = maxRainRate;
+
+                    if (!rainAudio.isPlaying) rainAudio.Play();
+                    rainAudio.volume = Mathf.Lerp(rainAudio.volume, 1f, Time.deltaTime);
+                    break;
+                }
+            default:
+                break;
         }
-    }
 
-    void CycleWeather()
-    {
-        // Moves 0 -> 1 -> 2 -> 0
-        weatherIndex = (weatherIndex + 1) % 3;
-        SetWeather(weatherIndex);
-    }
-
-    void SetWeather(int index)
-    {
-        weatherIndex = index;
-
-        // Reset all first
-        EnableSnow(false);
-        EnableRain(false);
-
-        // Enable based on index
-        if (index == 1) EnableSnow(true);
-        else if (index == 2) EnableRain(true);
-    }
-
-    void EnableSnow(bool enable)
-    {
-        if (enable)
+        // add snow on the floor
+        if (p.Temperature <= 0)
         {
-            EnableRain(false);
             FindAnyObjectByType<SnowSystem>().SetSnow(1f);
-            if (groundRenderer != null && groundSnow != null)
-            {
-                groundRenderer.material = groundSnow;
-            }
-            if (snow != null)
-            {
-                snow.SetActive(true);
-            }
-
-            if (sun != null)
-            {
-                sun.intensity = snowySunIntensity;
-            }
-
-            if (moon != null)
-            {
-                moon.intensity = snowyMoonIntensity;
-            }
+            ground.GetComponent<Renderer>().material = groundSnow;
         }
-        else
+        if (p.Humidity >= 50)
         {
-            FindAnyObjectByType<SnowSystem>().SetSnow(0f);
-            if (groundRenderer != null && groundGrass != null)
-            {
-                groundRenderer.material = groundGrass;
-            }
-            if (snow != null)
-            {
-                snow.SetActive(false);
-            }
-
-            if (sun != null)
-            {
-                sun.intensity = baseSunIntensity;
-            }
-
-            if (moon != null)
-            {
-                moon.intensity = baseMoonIntensity;
-            }
+            // add fog
+        }
+        if (p.WindSpeed >= 20)
+        {
+            // add wind
+        }
+        if (p.RainChance >= 30)
+        {
+            // add clouds
         }
     }
-    void EnableRain(bool enable)
+
+    private WeatherIntensity GetIntensity(int code)
     {
-        if (enable)
+        return code switch
         {
-            EnableSnow(false);
-            if (rain != null)
-            {
-                rain.SetActive(true);
-            }
+            0 => WeatherIntensity.Clear,
+            1 or 2 or 3 or 45 or 48 => WeatherIntensity.Cloudy,
+            51 or 53 or 55 or 61 or 63 or 65 or 80 or 81 or 82 => WeatherIntensity.Rainy,
+            71 or 73 or 75 or 77 or 85 or 86 => WeatherIntensity.Snowy,
+            95 or 96 or 99 => WeatherIntensity.Stormy,
+            _ => WeatherIntensity.Clear
+        };
+    }
 
-            if (sun != null)
-            {
-                sun.intensity = rainySunIntensity;
-            }
-
-            if (moon != null)
-            {
-                moon.intensity = rainyMoonIntensity;
-            }
-        }
-        else
+    private float GetRainIntensity(int code)
+    {
+        return code switch
         {
-            if (rain != null)
-            {
-                rain.SetActive(false);
-            }
-
-            if (sun != null)
-            {
-                sun.intensity = baseSunIntensity;
-            }
-
-            if (moon != null)
-            {
-                moon.intensity = baseMoonIntensity;
-            }
-        }
+            51 or 61 or 80 => 0.2f,
+            53 or 63 or 81 => 0.6f,
+            55 or 65 or 82 => 1.0f,
+            _ => 0f
+        };
+    }
+    private float GetSnowIntensity(int code)
+    {
+        return code switch
+        {
+            71 or 77 or 85 => 0.2f,
+            73 => 0.6f,
+            75 or 86 => 1.0f,
+            _ => 0f
+        };
     }
 }
