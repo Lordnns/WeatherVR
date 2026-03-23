@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 1591a4e092e340e4899da33182a9a4ee
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 323250
+  packageName: Perlin Noise Master
+  packageVersion: 1.0
+  assetPath: Assets/BOXTANK/PerlinNoiseMaster/Editor/ModifyTextureCommand.cs
+  uploadId: 763830

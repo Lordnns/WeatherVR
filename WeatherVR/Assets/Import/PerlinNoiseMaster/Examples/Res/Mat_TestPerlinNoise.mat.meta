@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 48e8af372394ffa4a86788e6ef3859ab
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 323250
+  packageName: Perlin Noise Master
+  packageVersion: 1.0
+  assetPath: Assets/BOXTANK/PerlinNoiseMaster/Examples/Res/Mat_TestPerlinNoise.mat
+  uploadId: 763830

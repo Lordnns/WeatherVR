@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 6d15e37ea60a84948babdff939a37857
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 323250
+  packageName: Perlin Noise Master
+  packageVersion: 1.0
+  assetPath: Assets/BOXTANK/PerlinNoiseMaster/Examples/Demo.unity
+  uploadId: 763830

@@ -398,6 +398,11 @@ public class WeatherUIManager : MonoBehaviour
         return 0;
     }
 
+    public static void TriggerWeatherUpdate(CurrentWeatherPayload data)
+    {
+        OnCurrentDisplayUpdated?.Invoke(data);
+    }
+
     // ─── WMO Code → Texture ───────────────────────────────────────────────────
     //
     //  Intensity tier per WMO severity:
@@ -434,7 +439,7 @@ public class WeatherUIManager : MonoBehaviour
     //  99   Thunderstorm + heavy hail     thunderstorms-extreme-rain
     //
     // ─────────────────────────────────────────────────────────────────────────
-    
+
     // Highly precise mapping based on Meteocons
     private Texture GetTextureForWeatherCode(int code, bool isDay)
     {

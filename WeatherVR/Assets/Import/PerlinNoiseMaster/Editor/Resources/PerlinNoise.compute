@@ -1,0 +1,98 @@
+// File: PerlinNoise.compute
+
+#pragma kernel CSMain
+
+RWTexture2D<float> Result;
+uint Width;
+uint Height;
+uint PeriodX;
+uint PeriodY;
+uint Seed;
+uint Octaves;
+float Persistence;
+float Lacunarity;
+float2 Offset;
+float Amplitude;
+uint Invert;
+float2 OutputRange;
+
+uint hash(uint x) {
+    x += (x << 10u);
+    x ^= (x >> 6u);
+    x += (x << 3u);
+    x ^= (x >> 11u);
+    x += (x << 15u);
+    return x;
+}
+
+float2 Gradient(uint x, uint y, uint seed) {
+    uint h = hash(hash(x + seed) ^ hash(y - seed));
+    float angle = (h & 255) / 255.0 * 6.2831853; // [0, 2PI]
+    return float2(cos(angle), sin(angle));
+}
+
+float Fade(float t) {
+    return t * t * t * (t * (t * 6 - 15) + 10);
+}
+
+float Perlin(float2 p, uint periodX, uint periodY, uint seed) {
+    uint xi0 = ((uint)floor(p.x)) % periodX;
+    uint yi0 = ((uint)floor(p.y)) % periodY;
+    uint xi1 = (xi0 + 1) % periodX;
+    uint yi1 = (yi0 + 1) % periodY;
+
+    float2 g00 = Gradient(xi0, yi0, seed);
+    float2 g10 = Gradient(xi1, yi0, seed);
+    float2 g01 = Gradient(xi0, yi1, seed);
+    float2 g11 = Gradient(xi1, yi1, seed);
+
+    float2 f = frac(p);
+    float sx = Fade(f.x);
+    float sy = Fade(f.y);
+
+    float n00 = dot(g00, f);
+    float n10 = dot(g10, float2(f.x - 1, f.y));
+    float n01 = dot(g01, float2(f.x, f.y - 1));
+    float n11 = dot(g11, float2(f.x - 1, f.y - 1));
+
+    float nx0 = lerp(n00, n10, sx);
+    float nx1 = lerp(n01, n11, sx);
+    float nxy = lerp(nx0, nx1, sy);
+
+    return nxy * 0.5 + 0.5; // [0,1]
+}
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= Width || id.y >= Height) return;
+
+    float2 uv = float2(id.x, id.y) / float2(Width, Height);
+    float2 p = uv * float2(PeriodX, PeriodY) + Offset;
+
+    float value = 0;
+    float amp = 1;
+    float freq = 1;
+    float maxAmp = 0;
+
+    for (uint o = 0; o < Octaves; o++) {
+        float freqX = PeriodX * freq;
+        float freqY = PeriodY * freq;
+        float2 sampleP;
+        sampleP.x = uv.x * freqX + Offset.x * freq;
+        sampleP.y = uv.y * freqY + Offset.y * freq;
+        float n = Perlin(sampleP, max(1, int(freqX)), max(1, int(freqY)), Seed + o * 31);
+        value += n * amp;
+        maxAmp += amp;
+        amp *= Persistence;
+        freq *= Lacunarity;
+    }
+    value /= maxAmp;
+    value *= Amplitude;
+    if (Invert != 0) value = 1.0 - value;
+
+    // Normalize to OutputRange
+    //value = OutputRange.x + (OutputRange.y - OutputRange.x) * value;
+
+    Result[int2(id.xy)] = value;
+}

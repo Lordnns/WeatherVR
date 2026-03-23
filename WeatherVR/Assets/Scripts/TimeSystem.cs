@@ -1,11 +1,15 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
 
 public class TimeSystem : MonoBehaviour
 {
     [SerializeField] private Light sun;
     [SerializeField] private Light moon;
+
+    [SerializeField] private Transform sunTilt;
+    [SerializeField] private Transform sunRotation;
 
     [SerializeField] private Material skyboxBase;
 
@@ -27,20 +31,44 @@ public class TimeSystem : MonoBehaviour
     // Sun temperature only changes on evening
     private void OnWeatherChanged(WeatherUIManager.CurrentWeatherPayload p)
     {
+        if (string.IsNullOrEmpty(p.Sunrise) || string.IsNullOrEmpty(p.Sunset))
+        {
+            Debug.LogWarning("Sunet/Sunrise are null");
+            return;
+        }
+
+        double dayDuration = (DateTime.Parse(p.Sunset) - DateTime.Parse(p.Sunrise)).TotalMinutes;
+        double nightDuration = 60 * 24 - dayDuration;
+        float angle;
+        float tilt = (float)(dayDuration / (60 * 12));
+
+        if (p.IsDay)
+        {
+            float progress = (float)((p.Time - DateTime.Parse(p.Sunrise)).TotalMinutes / dayDuration);
+            angle = progress * 180f;
+            sun.enabled = true;
+        }
+        else
+        {
+            float progress = (float)((DateTime.Parse(p.Sunset) - p.Time).TotalMinutes / nightDuration);
+            if (progress < 0) progress += (float)(60 * 24 / nightDuration);
+            angle = progress * 180f + 180f;
+            sun.enabled = false;
+        }
+
         double minutesFromSunset = Math.Min(
             (p.Time - DateTime.Parse(p.Sunrise)).TotalMinutes,
             (DateTime.Parse(p.Sunset) - p.Time).TotalMinutes
-            );
+        );
 
-        // rotate sun
-        sun.transform.rotation = Quaternion.Euler((p.Time.Hour * 15 - 90) % 360, 0, 0);
+        // rotate and tilt sun
+        sunTilt.transform.localRotation = Quaternion.Euler(tilt, 0f, 0f);
+        sunRotation.transform.localRotation = Quaternion.Euler(angle, 90f, 0f);
 
         // set skybox
         skyboxBase.SetTexture("_Tex", !p.IsDay ? nightSky : minutesFromSunset < minutesBeforeSunset ? eveningSky : daySky);
 
-        // enable or disable light sources
-        sun.enabled = p.IsDay;
-        moon.enabled = !p.IsDay;
+        moon.enabled = !sun.enabled;
 
         // manage sun temperature
         sun.colorTemperature = (float) Math.Clamp(sunTemp * minutesFromSunset / minutesBeforeSunset, sunSetTemp, sunTemp);
