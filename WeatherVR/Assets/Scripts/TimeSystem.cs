@@ -31,6 +31,7 @@ public class TimeSystem : MonoBehaviour
     // Sun temperature only changes on evening
     private void OnWeatherChanged(WeatherUIManager.CurrentWeatherPayload p)
     {
+        p.IsDay = false;
         if (string.IsNullOrEmpty(p.Sunrise) || string.IsNullOrEmpty(p.Sunset))
         {
             Debug.LogWarning("Sunet/Sunrise are null");
@@ -51,8 +52,10 @@ public class TimeSystem : MonoBehaviour
         }
         else
         {
-            float progress = (float)((DateTime.Parse(p.Sunset) - p.Time).TotalMinutes / nightDuration);
-            if (progress < 0) progress += (float)(60 * 24 / nightDuration);
+            double minutesSinceSunset = (p.Time > DateTime.Parse(p.Sunset))
+                ? (p.Time - DateTime.Parse(p.Sunset)).TotalMinutes
+                : (p.Time.AddDays(1) - DateTime.Parse(p.Sunset)).TotalMinutes;
+            float progress = (float)(minutesSinceSunset / nightDuration);
             angle = progress * 180f + 180f;
             sun.enabled = false;
         }
