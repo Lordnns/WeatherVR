@@ -34,7 +34,8 @@ public class TimeSystem : MonoBehaviour
         if (string.IsNullOrEmpty(p.Sunrise) || string.IsNullOrEmpty(p.Sunset))
         {
             Debug.LogWarning("Sunet/Sunrise are null");
-            return;
+            p.Sunrise = "6:00 AM";
+            p.Sunset = "8:00 PM";
         }
 
         double dayDuration = (DateTime.Parse(p.Sunset) - DateTime.Parse(p.Sunrise)).TotalMinutes;
