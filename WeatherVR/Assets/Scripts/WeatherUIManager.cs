@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 public class WeatherUIManager : MonoBehaviour
@@ -25,12 +26,34 @@ public class WeatherUIManager : MonoBehaviour
         public DateTime Time;
     }
     
+    // ── Button state ──────────────────────────────────────────────────────────
+    private enum ButtonState { Idle, Loading, Error }
+
+    private static readonly Color _colorIdle    = Color.green;
+    private static readonly Color _colorLoading = Color.yellow;
+    private static readonly Color _colorError   = new Color(1f, 0.2f, 0.2f); // bright red
+
+    [Header("Button Feedback")]
+    [SerializeField] private float errorLightDuration = 3f;
+
+    [Header("Button Sounds")]
+    [SerializeField] private AudioSource feedbackAudio;  // dedicated AudioSource for UI sounds
+    [SerializeField] private AudioClip   successClip;    // played on green (success)
+    [SerializeField] private AudioClip   errorClip;      // played on red (failure)
+
+    // Tracks whether the search button is waiting for a result so we don't
+    // react to unrelated OnWeatherUpdated calls (e.g. the initial load).
+    private bool _citySearchPending = false;
+
+    // ── Search UI ─────────────────────────────────────────────────────────────
     [Header("Search UI")]
     public TMP_InputField citySearchInput;
+    public Image searchButtonImage;
     public Button searchButton;
     
     [Header("Slot ID Lookup")]
     public TMP_InputField slotIdInput;  // user types e.g. "MO14"
+    public Image slotButtonImage;
     public Button slotIdButton;
 
     [Header("Current Weather (Left Column)")]
@@ -157,71 +180,154 @@ public class WeatherUIManager : MonoBehaviour
     
     private void OnEnable()
     {
-        WeatherAPI.OnWeatherUpdated += UpdateCurrentWeatherUI;
+        WeatherAPI.OnWeatherUpdated  += UpdateCurrentWeatherUI;
+        WeatherAPI.OnWeatherUpdated  += OnCitySearchSucceeded;
         WeatherAPI.OnForecastUpdated += UpdateHourlyForecastUI;
+        WeatherAPI.OnCitySearchFailed += OnCitySearchFailed;
         
-        if(searchButton != null)
+        if (searchButton != null)
+        {
             searchButton.onClick.AddListener(OnSearchClicked);
-        
+        }
+
         if (slotIdButton != null)
+        {
             slotIdButton.onClick.AddListener(OnSlotIdSubmitted);
+        }
+
+        // Both buttons start green (idle)
+        SetButtonLight(searchButtonImage, ButtonState.Idle);
+        SetButtonLight(slotButtonImage,   ButtonState.Idle);
     }
 
     private void OnDisable()
     {
-        WeatherAPI.OnWeatherUpdated -= UpdateCurrentWeatherUI;
+        WeatherAPI.OnWeatherUpdated  -= UpdateCurrentWeatherUI;
+        WeatherAPI.OnWeatherUpdated  -= OnCitySearchSucceeded;
         WeatherAPI.OnForecastUpdated -= UpdateHourlyForecastUI;
+        WeatherAPI.OnCitySearchFailed -= OnCitySearchFailed;
         
-        if(searchButton != null)
+        if (searchButton != null)
             searchButton.onClick.RemoveListener(OnSearchClicked);
         
         if (slotIdButton != null)
             slotIdButton.onClick.RemoveListener(OnSlotIdSubmitted);
     }
 
+    // ── City search ───────────────────────────────────────────────────────────
+
     private void OnSearchClicked()
     {
-        if (!string.IsNullOrEmpty(citySearchInput.text))
-        {
-            WeatherAPI.instance.UpdateCityManual(citySearchInput.text);
-        }
+        if (string.IsNullOrEmpty(citySearchInput.text)) return;
+
+        // Mark that we're waiting for a city-search result
+        _citySearchPending = true;
+
+        // Yellow while the API call is in flight
+        SetButtonLight(searchButtonImage, ButtonState.Loading);
+
+        WeatherAPI.instance.UpdateCityManual(citySearchInput.text);
     }
-    
+
+    /// <summary>Called when OnWeatherUpdated fires after a city search.</summary>
+    private void OnCitySearchSucceeded()
+    {
+        if (!_citySearchPending) return;   // not our result, ignore
+        _citySearchPending = false;
+
+        SetButtonLight(searchButtonImage, ButtonState.Idle);
+        PlaySound(successClip);
+    }
+
+    /// <summary>Called when geocoding returns no results or fails.</summary>
+    private void OnCitySearchFailed()
+    {
+        _citySearchPending = false;
+
+        SetButtonLight(searchButtonImage, ButtonState.Error);
+        PlaySound(errorClip);
+
+        // Auto-reset to green after errorLightDuration seconds
+        StartCoroutine(ResetLightAfterDelay(searchButtonImage, errorLightDuration));
+    }
+
+    // ── Slot-ID lookup ────────────────────────────────────────────────────────
+
     private void OnSlotIdSubmitted()
     {
         if (string.IsNullOrEmpty(slotIdInput.text)) return;
- 
+
+        // Brief yellow flash so the user knows the button was pressed
+        SetButtonLight(slotButtonImage, ButtonState.Loading);
+
         string id = slotIdInput.text.ToUpper().Trim();
- 
+
         if (_slots.TryGetValue(id, out SlotData data))
         {
             _selectedSlot = data;
             RefreshCurrentDisplay();
             Debug.Log($"Slot [{id}] selected — WMO:{data.WeatherCode} Temp:{data.Temperature}°C");
+
+            // Success: back to green + sound
+            SetButtonLight(slotButtonImage, ButtonState.Idle);
+            PlaySound(successClip);
         }
         else
         {
             Debug.LogWarning($"Slot ID '{id}' not found. Valid format: MO14, TU09, SU00...");
+
+            // Error: red + sound, then auto-reset
+            SetButtonLight(slotButtonImage, ButtonState.Error);
+            PlaySound(errorClip);
+            StartCoroutine(ResetLightAfterDelay(slotButtonImage, errorLightDuration));
         }
     }
-    
+
+    // ── Light helpers ─────────────────────────────────────────────────────────
+
+    private void SetButtonLight(Image light, ButtonState state)
+    {
+        if (light == null) return;
+        light.color = state switch
+        {
+            ButtonState.Idle    => _colorIdle,
+            ButtonState.Loading => _colorLoading,
+            ButtonState.Error   => _colorError,
+            _                   => _colorIdle
+        };
+    }
+
+    private IEnumerator ResetLightAfterDelay(Image light, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        SetButtonLight(light, ButtonState.Idle);
+    }
+
+    // ── Sound helpers ─────────────────────────────────────────────────────────
+
+    private void PlaySound(AudioClip clip)
+    {
+        if (feedbackAudio == null || clip == null) return;
+        feedbackAudio.PlayOneShot(clip);
+    }
+
+    // ── Rest of the existing methods (unchanged) ──────────────────────────────
+
     public void ClearSelection()
     {
         _selectedSlot = null;
         RefreshCurrentDisplay();
     }
     
-
     private void UpdateCurrentWeatherUI()
     {
         if (_selectedSlot != null) return;
         RefreshCurrentDisplay();
     }
     
-     private void RefreshCurrentDisplay()
+    private void RefreshCurrentDisplay()
     {
         // ── High/low and sunrise/sunset — keyed to slot day or today ──────────
-        // If a slot is selected use its date, otherwise use today
         string lookupKey = _selectedSlot.HasValue
                             ? _selectedSlot.Value.Time.ToString("yyyy-MM-dd")
                             : DateTime.Now.ToString("yyyy-MM-dd");
@@ -253,14 +359,13 @@ public class WeatherUIManager : MonoBehaviour
             string   displayTime = isToday
                                     ? displayDt.ToString("h:mm tt")
                                     : displayDt.ToString("ddd h:mm tt");
- 
+
             currentCityText.text       = WeatherAPI.instance.CityName;
             currentTimeText.text       = displayTime;
             currentTempText.text       = $"{Mathf.RoundToInt(d.Temperature)}°C";
             currentRainChanceText.text = "Precipitation: " + $"{Mathf.RoundToInt(d.RainChance)}%";
             currentWeatherIcon.texture = GetTextureForWeatherCode(d.WeatherCode, d.IsDay);
- 
-            // Use the slot's own hourly values for the selected hour
+
             SetOptionalText(currentFeelsLikeText,  $"{Mathf.RoundToInt(d.ApparentTemp)}°C");
             SetOptionalText(currentHumidityText,   "Humidity:      " + $"{Mathf.RoundToInt(d.Humidity)}%");
             SetOptionalText(currentWindSpeedText,  "Wind Speed:    " + $"{Mathf.RoundToInt(d.WindSpeed)} km/h");
@@ -290,7 +395,7 @@ public class WeatherUIManager : MonoBehaviour
             currentTempText.text       = $"{Mathf.RoundToInt(WeatherAPI.instance.Temperature)}°C";
             currentRainChanceText.text = "Precipitation: " + $"{Mathf.RoundToInt(WeatherAPI.instance.CurrentRainChance)}%";
             currentWeatherIcon.texture = GetTextureForWeatherCode(WeatherAPI.instance.WeatherCode, WeatherAPI.instance.IsDay);
- 
+
             SetOptionalText(currentFeelsLikeText,  $"{Mathf.RoundToInt(WeatherAPI.instance.ApparentTemp)}°C");
             SetOptionalText(currentHumidityText,   "Humidity:      " + $"{Mathf.RoundToInt(WeatherAPI.instance.Humidity)}%");
             SetOptionalText(currentWindSpeedText,  "Wind Speed:    " + $"{Mathf.RoundToInt(WeatherAPI.instance.WindSpeed)} km/h");
@@ -357,7 +462,7 @@ public class WeatherUIManager : MonoBehaviour
             float    rain       = hourly.precipitation_probability[dataIndex];
             string   slotId     = DayAbbr[(int)parsedTime.DayOfWeek] + parsedTime.Hour.ToString("D2");
  
-            // Spawn and populate display — bare minimum only
+            // Spawn and populate display
             GameObject   newSlotObj = Instantiate(hourlySlotPrefab, hourlyContentParent);
             HourlyUISlot slotUI     = newSlotObj.GetComponent<HourlyUISlot>();
  
@@ -367,7 +472,7 @@ public class WeatherUIManager : MonoBehaviour
             slotUI.rainChanceText.text = $"{rain}%";
             slotUI.iconImage.texture   = GetTextureForWeatherCode(code, isDayHour);
  
-            // Store full data silently — available when slot is pulled onto big screen
+            // Store full data silently
             _slots[slotId] = new SlotData
             {
                 Id           = slotId,
@@ -382,7 +487,6 @@ public class WeatherUIManager : MonoBehaviour
             };
         }
     }
-
 
     private int FindCurrentHourIndex(string[] times)
     {
@@ -404,158 +508,39 @@ public class WeatherUIManager : MonoBehaviour
     }
 
     // ─── WMO Code → Texture ───────────────────────────────────────────────────
-    //
-    //  Intensity tier per WMO severity:
-    //
-    //  WMO  Description                   Tier
-    //  ───  ──────────────────────────    ─────────────
-    //   0   Clear sky                     clear
-    //   1   Mainly clear                  partly-cloudy
-    //   2   Partly cloudy                 partly-cloudy
-    //   3   Overcast                      overcast
-    //  45   Fog                           fog
-    //  48   Rime fog (denser)             overcast-fog
-    //  51   Drizzle light                 partly-cloudy
-    //  53   Drizzle moderate              overcast
-    //  55   Drizzle dense                 extreme
-    //  56   Freezing drizzle light        overcast-sleet
-    //  57   Freezing drizzle heavy        extreme-sleet
-    //  61   Rain slight                   partly-cloudy
-    //  63   Rain moderate                 overcast
-    //  65   Rain heavy                    extreme
-    //  66   Freezing rain light           overcast-sleet
-    //  67   Freezing rain heavy           extreme-sleet
-    //  71   Snow slight                   partly-cloudy
-    //  73   Snow moderate                 overcast
-    //  75   Snow heavy                    extreme
-    //  77   Snow grains                   partly-cloudy (light, granular)
-    //  80   Rain showers slight           partly-cloudy
-    //  81   Rain showers moderate         overcast
-    //  82   Rain showers violent          extreme
-    //  85   Snow showers slight           partly-cloudy
-    //  86   Snow showers heavy            extreme
-    //  95   Thunderstorm                  thunderstorms-overcast
-    //  96   Thunderstorm + slight hail    thunderstorms-overcast-rain
-    //  99   Thunderstorm + heavy hail     thunderstorms-extreme-rain
-    //
-    // ─────────────────────────────────────────────────────────────────────────
-
-    // Highly precise mapping based on Meteocons
     private Texture GetTextureForWeatherCode(int code, bool isDay)
     {
-switch (code)
+        switch (code)
         {
-            // ── Clear ──────────────────────────────────────────────────────────
-            case 0:
-                return isDay ? clearDay : clearNight;
- 
-            // ── Mainly clear / Partly cloudy ───────────────────────────────────
+            case 0:  return isDay ? clearDay : clearNight;
             case 1:
-            case 2:
-                return isDay ? partlyCloudyDay : partlyCloudyNight;
- 
-            // ── Overcast ───────────────────────────────────────────────────────
-            case 3:
-                return isDay ? overcastDay : overcastNight;
- 
-            // ── Fog ────────────────────────────────────────────────────────────
-            case 45:
-                return isDay ? fogDay : fogNight;
- 
-            // ── Rime fog (denser than regular fog) ─────────────────────────────
-            case 48:
-                return isDay ? overcastDayFog : overcastNightFog;
- 
-            // ── Drizzle light → partly-cloudy ──────────────────────────────────
-            case 51:
-                return isDay ? partlyCloudyDayDrizzle : partlyCloudyNightDrizzle;
- 
-            // ── Drizzle moderate → overcast ────────────────────────────────────
-            case 53:
-                return isDay ? overcastDayDrizzle : overcastNightDrizzle;
- 
-            // ── Drizzle dense → extreme ────────────────────────────────────────
-            case 55:
-                return isDay ? extremeDayDrizzle : extremeNightDrizzle;
- 
-            // ── Freezing drizzle light → overcast sleet ────────────────────────
-            case 56:
-                return isDay ? overcastDaySleet : overcastNightSleet;
- 
-            // ── Freezing drizzle heavy → extreme sleet ─────────────────────────
-            case 57:
-                return isDay ? extremeDaySleet : extremeNightSleet;
- 
-            // ── Rain slight → partly-cloudy ────────────────────────────────────
-            case 61:
-                return isDay ? partlyCloudyDayRain : partlyCloudyNightRain;
- 
-            // ── Rain moderate → overcast ───────────────────────────────────────
-            case 63:
-                return isDay ? overcastDayRain : overcastNightRain;
- 
-            // ── Rain heavy → extreme ───────────────────────────────────────────
-            case 65:
-                return isDay ? extremeDayRain : extremeNightRain;
- 
-            // ── Freezing rain light → overcast sleet ───────────────────────────
-            case 66:
-                return isDay ? overcastDaySleet : overcastNightSleet;
- 
-            // ── Freezing rain heavy → extreme sleet ────────────────────────────
-            case 67:
-                return isDay ? extremeDaySleet : extremeNightSleet;
- 
-            // ── Snow slight → partly-cloudy ────────────────────────────────────
-            case 71:
-                return isDay ? partlyCloudyDaySnow : partlyCloudyNightSnow;
- 
-            // ── Snow moderate → overcast ───────────────────────────────────────
-            case 73:
-                return isDay ? overcastDaySnow : overcastNightSnow;
- 
-            // ── Snow heavy → extreme ───────────────────────────────────────────
-            case 75:
-                return isDay ? extremeDaySnow : extremeNightSnow;
- 
-            // ── Snow grains (light granular) → partly-cloudy ───────────────────
-            case 77:
-                return isDay ? partlyCloudyDaySnow : partlyCloudyNightSnow;
- 
-            // ── Rain showers slight → partly-cloudy ────────────────────────────
-            case 80:
-                return isDay ? partlyCloudyDayRain : partlyCloudyNightRain;
- 
-            // ── Rain showers moderate → overcast ───────────────────────────────
-            case 81:
-                return isDay ? overcastDayRain : overcastNightRain;
- 
-            // ── Rain showers violent → extreme ─────────────────────────────────
-            case 82:
-                return isDay ? extremeDayRain : extremeNightRain;
- 
-            // ── Snow showers slight → partly-cloudy ────────────────────────────
-            case 85:
-                return isDay ? partlyCloudyDaySnow : partlyCloudyNightSnow;
- 
-            // ── Snow showers heavy → extreme ───────────────────────────────────
-            case 86:
-                return isDay ? extremeDaySnow : extremeNightSnow;
- 
-            // ── Thunderstorm → thunderstorms-overcast ──────────────────────────
-            case 95:
-                return isDay ? thunderstormsDayOvercast : thunderstormsNightOvercast;
- 
-            // ── Thunderstorm + slight hail → thunderstorms-overcast-rain ────────
-            case 96:
-                return isDay ? thunderstormsDayOvercastRain : thunderstormsNightOvercastRain;
- 
-            // ── Thunderstorm + heavy hail → thunderstorms-extreme-rain ──────────
-            case 99:
-                return isDay ? thunderstormsDayExtremeRain : thunderstormsNightExtremeRain;
- 
-            default:
-                return isDay ? clearDay : clearNight;
+            case 2:  return isDay ? partlyCloudyDay : partlyCloudyNight;
+            case 3:  return isDay ? overcastDay : overcastNight;
+            case 45: return isDay ? fogDay : fogNight;
+            case 48: return isDay ? overcastDayFog : overcastNightFog;
+            case 51: return isDay ? partlyCloudyDayDrizzle : partlyCloudyNightDrizzle;
+            case 53: return isDay ? overcastDayDrizzle : overcastNightDrizzle;
+            case 55: return isDay ? extremeDayDrizzle : extremeNightDrizzle;
+            case 56: return isDay ? overcastDaySleet : overcastNightSleet;
+            case 57: return isDay ? extremeDaySleet : extremeNightSleet;
+            case 61: return isDay ? partlyCloudyDayRain : partlyCloudyNightRain;
+            case 63: return isDay ? overcastDayRain : overcastNightRain;
+            case 65: return isDay ? extremeDayRain : extremeNightRain;
+            case 66: return isDay ? overcastDaySleet : overcastNightSleet;
+            case 67: return isDay ? extremeDaySleet : extremeNightSleet;
+            case 71: return isDay ? partlyCloudyDaySnow : partlyCloudyNightSnow;
+            case 73: return isDay ? overcastDaySnow : overcastNightSnow;
+            case 75: return isDay ? extremeDaySnow : extremeNightSnow;
+            case 77: return isDay ? partlyCloudyDaySnow : partlyCloudyNightSnow;
+            case 80: return isDay ? partlyCloudyDayRain : partlyCloudyNightRain;
+            case 81: return isDay ? overcastDayRain : overcastNightRain;
+            case 82: return isDay ? extremeDayRain : extremeNightRain;
+            case 85: return isDay ? partlyCloudyDaySnow : partlyCloudyNightSnow;
+            case 86: return isDay ? extremeDaySnow : extremeNightSnow;
+            case 95: return isDay ? thunderstormsDayOvercast : thunderstormsNightOvercast;
+            case 96: return isDay ? thunderstormsDayOvercastRain : thunderstormsNightOvercastRain;
+            case 99: return isDay ? thunderstormsDayExtremeRain : thunderstormsNightExtremeRain;
+            default: return isDay ? clearDay : clearNight;
         }
     }
 }
