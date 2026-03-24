@@ -284,6 +284,10 @@ public class WeatherSystem : MonoBehaviour
                     FindAnyObjectByType<SnowSystem>().SetSnow(1f);
                     ground.GetComponent<Renderer>().material = groundSnow;
                     _fogColor = Color.white;
+
+                    _targetCloudsColor = 1.0f;
+                    _targetCloudsAlpha = 1.0f;
+                    _targetSkyAlpha = 0.8f;
                     break;
                 }
             // rain and thunder
