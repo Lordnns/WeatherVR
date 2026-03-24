@@ -232,7 +232,7 @@ public class WeatherSystem : MonoBehaviour
                 {
                     if (p.IsDay)
                     {
-                        _targetDayAudioVolume = 0.5f;
+                        _targetDayAudioVolume = 0.2f;
                         if (!dayAudio.isPlaying) dayAudio.Play();
                     } else
                     {
@@ -251,7 +251,7 @@ public class WeatherSystem : MonoBehaviour
 
                     if (p.IsDay)
                     {
-                        _targetDayAudioVolume = 0.5f;
+                        _targetDayAudioVolume = 0.2f;
                         if (!dayAudio.isPlaying) dayAudio.Play();
                     }
                     else

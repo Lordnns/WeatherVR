@@ -31,6 +31,8 @@ public class TimeSystem : MonoBehaviour
     // Sun temperature only changes on evening
     private void OnWeatherChanged(WeatherUIManager.CurrentWeatherPayload p)
     {
+        Debug.Log(p.Time);
+        Debug.Log(p.IsDay);
         if (string.IsNullOrEmpty(p.Sunrise) || string.IsNullOrEmpty(p.Sunset))
         {
             Debug.LogWarning("Sunet/Sunrise are null");
