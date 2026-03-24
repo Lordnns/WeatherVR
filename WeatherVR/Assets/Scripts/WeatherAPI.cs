@@ -45,6 +45,7 @@ public class WeatherAPI : MonoBehaviour
     // Delegate for global broadcast
     public static event Action OnWeatherUpdated;
     public static event Action OnForecastUpdated;
+    public static event Action OnCitySearchFailed;
 
     private void Awake()
     {
@@ -129,6 +130,12 @@ public class WeatherAPI : MonoBehaviour
                     _cityName = geoData.results[0].name;
 
                     yield return StartCoroutine(PerformFullRefresh());
+                }
+                else
+                {
+                    // API responded but found no matching city
+                    Debug.LogWarning($"City '{cityNameInput}' not found in geocoding results.");
+                    OnCitySearchFailed?.Invoke();
                 }
             }
         }
